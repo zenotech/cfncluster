@@ -43,6 +43,16 @@ if [ $RC -ne 0 ]; then
   error_exit "Failed during during NFS mounts"
 fi
 
+#Bind to NIS domain
+RC=0
+authconfig --enablenis --nisdomain="internal" --nisserver=${cfn_master} --update || RC=1
+chkconfig ypbind on || RC=1
+chkconfig rpcbind on || RC=1
+service rpcbind restart || RC=1
+if [ $RC -ne 0 ]; then
+  error_exit "Failed during during NIS config"
+fi
+
 # Configure ganglia
 RC=0
 location=`curl --retry 3 --retry-delay 0 --silent --fail http://169.254.169.254/latest/meta-data/placement/availability-zone` || RC=1
@@ -74,4 +84,5 @@ run_postinstall
 # Notify compute is ready
 instance_id_url="http://169.254.169.254/latest/meta-data/instance-id"
 instance_id=$(curl --retry 3 --retry-delay 0 --silent --fail ${instance_id_url})
-aws --region ${cfn_region} sqs send-message --queue-url ${cfn_sqs_url} --message-body '{"Type" : "Notification", "Message" : "{\"StatusCode\":\"Complete\",\"Description\":\"Succesfully launched '${instance_id}'\",\"Event\":\"cfncluster:COMPUTE_READY\",\"EC2InstanceId\":\"'${instance_id}'\"}"}'
+
+aws --region ${cfn_region} sqs send-message --queue-url ${cfn_sqs_url} --message-body '{"Type" : "Notification", "Message" : "{\"StatusCode\":\"Complete\",\"Description\":\"Succesfully launched '${instance_id}'\",\"Event\":\"cfncluster:COMPUTE_READY\",\"EC2InstanceId\":\"'${instance_id}'\",\"SpotInstance\":\"'${cfn_spot_fleet}'\"}"}'

@@ -46,31 +46,51 @@ def __restartSlurm(hostname, cluster_user):
     ssh.close()
 
 
-def __readNodeList():
+def __readNodeLists(partition = None):
+    """
+    Returns the ondemand and spot node lists
+    """
     _config = "/opt/slurm/etc/slurm.conf"
+    nodes = {}
     with open(_config) as slurm_config:
         for line in slurm_config:
-            if line.startswith('NodeName'):
-                items = line.split(' ')
+            if line.startswith('#ONDEMAND'):
+                node_name = slurm_config.next()
+                items = node_name.split(' ')
                 node_line = items[0].split('=')
-                node_list = node_line[1].split(',')
-                return node_list
+                nodes{'ondemand'} = node_line[1].split(',')
+            if line.startswith('#SPOT'):
+                node_name = slurm_config.next()
+                items = node_name.split(' ')
+                node_line = items[0].split('=')
+                nodes{'spot'} = node_line[1].split(',')
+    return nodes
 
 
-def __writeNodeList(node_list):
+def __writeNodeList(node_list, partition = None):
     _config = "/opt/slurm/etc/slurm.conf"
     fh, abs_path = mkstemp()
     with open(abs_path,'w') as new_file:
         with open(_config) as slurm_config:
             for line in slurm_config:
-                if line.startswith('NodeName'):
-                    items = line.split(' ')
+                if line.startswith('#ONDEMAND'):
+                    node_names = slurm_config.next()
+                    partitions = slurm_config.next()
+                    items = node_names.split(' ')
                     node_line = items[0].split('=')
-                    new_file.write(node_line[0] + '=' + ','.join(node_list) + " " + ' '.join(items[1:]))
-                elif line.startswith('PartitionName'):
-                    items = line.split(' ')
+                    new_file.write(node_line[0] + '=' + ','.join(node_list['ondemand']) + " " + ' '.join(items[1:]))
+                    items = partitions.split(' ')
                     node_line = items[1].split('=')
-                    new_file.write(items[0] + " " + node_line[0] + '=' + ','.join(node_list) + " " + ' '.join(items[2:]))
+                    new_file.write(items[0] + " " + node_line[0] + '=' + ','.join(node_list['ondemand']) + " " + ' '.join(items[2:]))
+                elif line.startswith('#SPOT'):
+                    node_names = slurm_config.next()
+                    partitions = slurm_config.next()
+                    items = node_names.split(' ')
+                    node_line = items[0].split('=')
+                    new_file.write(node_line[0] + '=' + ','.join(node_list['spot']) + " " + ' '.join(items[1:]))
+                    items = partitions.split(' ')
+                    node_line = items[1].split('=')
+                    new_file.write(items[0] + " " + node_line[0] + '=' + ','.join(node_list['spot']) + " " + ' '.join(items[2:]))
                 else:
                     new_file.write(line)
     os.close(fh)
@@ -82,14 +102,18 @@ def __writeNodeList(node_list):
     os.chmod(_config, 0744)
 
 
-def addHost(hostname, cluster_user):
-    print('Adding %s', hostname)
+def addHost(hostname, cluster_user, spot_compute):
+    print('Adding %s, spot_compute %s', % (hostname, spot_compute))
 
     # Get the current node list
     node_list = __readNodeList()
 
     # Add new node
-    node_list.append(hostname)
+    if spot_compute:
+        node_list['spot'].append(hostname)
+    else:
+        node_list['ondemand'].append(hostname)
+
     __writeNodeList(node_list)
 
     # Restart slurmctl locally
@@ -107,7 +131,11 @@ def removeHost(hostname, cluster_user):
     node_list = __readNodeList()
 
     # Remove node
-    node_list.remove(hostname)
+    if hostname in node_list['ondemand']:
+        node_list['ondemand'].remove(hostname)
+    else:
+        node_list['spot'].remove(hostname)
+    
     __writeNodeList(node_list)
 
     # Restart slurmctl

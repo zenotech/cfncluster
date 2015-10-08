@@ -104,6 +104,10 @@ def pollQueue(scheduler, q, t):
 
                 if eventType != 'autoscaling:TEST_NOTIFICATION':
                     instanceId = message_attrs['EC2InstanceId']
+                    if 'SpotInstance' in message_attrs:
+                        spot_compute = message_attrs['SpotInstance']
+                    else:
+                        spot_compute = False
                     if eventType == 'cfncluster:COMPUTE_READY':
                         print eventType, instanceId
 
@@ -122,11 +126,12 @@ def pollQueue(scheduler, q, t):
                                 else:
 				    print "Adding Hostname: %s" % hostname
                                     hostname = hostname[0].instances[0].private_dns_name.split('.')[:1][0]
-                                    s.addHost(hostname,cluster_user)
+                                    s.addHost(hostname,cluster_user,spot_compute)
 
                                     t.put_item(data={
                                         'instanceId': instanceId,
-                                        'hostname': hostname
+                                        'hostname': hostname,
+                                        'spot_compute': spot_compute
                                     })
 
 				q.delete_message(result)

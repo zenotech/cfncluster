@@ -42,6 +42,7 @@ fi
 function add_slurm_user () {
 RC=0
 useradd slurm || RC=1
+make -C /var/yp/ || RC=1
 if [ $RC -ne 0 ]; then
   error_exit "Failed adding slurm user"
 fi

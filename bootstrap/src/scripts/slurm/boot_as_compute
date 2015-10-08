@@ -68,7 +68,7 @@ fi
 }
 
 # Start Slurmd
-function start_slurm () {
+function start_slurm () {qqq  
 RC=0
 chkconfig slurm on || RC=1
 service slurm start
@@ -91,7 +91,7 @@ fi
 function do_install () {
   mount_nfs
   start_munge
-  add_slurm_user
+  # add_slurm_user
   setup_slurm_profile
   setup_compute_slurm
   start_slurm

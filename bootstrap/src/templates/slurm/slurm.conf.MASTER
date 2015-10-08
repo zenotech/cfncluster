@@ -91,6 +91,9 @@ JobCompType=jobcomp/none
 #AccountingStoragePass=
 #AccountingStorageUser=
 #
-# COMPUTE NODES
+#ONDEMAND NODES
 NodeName=dummy Procs=1 State=UNKNOWN
-PartitionName=debug Nodes=dummy Default=YES MaxTime=INFINITE State=UP
+PartitionName=ondemand Nodes=dummy Default=YES MaxTime=INFINITE State=UP
+#SPOT NODES
+NodeName=dummy2 Procs=1 State=UNKNOWN
+PartitionName=spot Nodes=dummy2 Default=No MaxTime=INFINITE State=UP
