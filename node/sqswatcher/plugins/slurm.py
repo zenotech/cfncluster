@@ -46,7 +46,7 @@ def __restartSlurm(hostname, cluster_user):
     ssh.close()
 
 
-def __readNodeLists(partition = None):
+def __readNodeList():
     """
     Returns the ondemand and spot node lists
     """
@@ -58,22 +58,23 @@ def __readNodeLists(partition = None):
                 node_name = slurm_config.next()
                 items = node_name.split(' ')
                 node_line = items[0].split('=')
-                nodes{'ondemand'} = node_line[1].split(',')
-            if line.startswith('#SPOT'):
+                nodes['ondemand'] = node_line[1].split(',')
+            elif line.startswith('#SPOT'):
                 node_name = slurm_config.next()
                 items = node_name.split(' ')
                 node_line = items[0].split('=')
-                nodes{'spot'} = node_line[1].split(',')
+                nodes['spot'] = node_line[1].split(',')
     return nodes
 
 
-def __writeNodeList(node_list, partition = None):
+def __writeNodeList(node_list):
     _config = "/opt/slurm/etc/slurm.conf"
     fh, abs_path = mkstemp()
     with open(abs_path,'w') as new_file:
         with open(_config) as slurm_config:
             for line in slurm_config:
                 if line.startswith('#ONDEMAND'):
+                    new_file.write(line)
                     node_names = slurm_config.next()
                     partitions = slurm_config.next()
                     items = node_names.split(' ')
@@ -83,6 +84,7 @@ def __writeNodeList(node_list, partition = None):
                     node_line = items[1].split('=')
                     new_file.write(items[0] + " " + node_line[0] + '=' + ','.join(node_list['ondemand']) + " " + ' '.join(items[2:]))
                 elif line.startswith('#SPOT'):
+                    new_file.write(line)
                     node_names = slurm_config.next()
                     partitions = slurm_config.next()
                     items = node_names.split(' ')
@@ -103,13 +105,13 @@ def __writeNodeList(node_list, partition = None):
 
 
 def addHost(hostname, cluster_user, spot_compute):
-    print('Adding %s, spot_compute %s', % (hostname, spot_compute))
+    print('Adding %s, spot_compute %s' %(hostname, spot_compute))
 
     # Get the current node list
     node_list = __readNodeList()
 
     # Add new node
-    if spot_compute:
+    if spot_compute == "True":
         node_list['spot'].append(hostname)
     else:
         node_list['ondemand'].append(hostname)

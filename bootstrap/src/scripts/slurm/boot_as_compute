@@ -62,13 +62,14 @@ RC=0
 cd /opt/slurm/etc || RC=1 
 /bin/cp -f /opt/cfncluster/templates/slurm/init.d.slurm.compute /etc/init.d/slurm || RC=1
 chmod 755 /etc/init.d/slurm || RC=1
+sed -i 's/#account/account/' /etc/pam.d/sshd || RC=1
 if [ $RC -ne 0 ]; then
   error_exit "Failed to configure Slurm"
 fi
 }
 
 # Start Slurmd
-function start_slurm () {qqq  
+function start_slurm () {  
 RC=0
 chkconfig slurm on || RC=1
 service slurm start

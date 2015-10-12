@@ -124,9 +124,9 @@ def pollQueue(scheduler, q, t):
                                 if not hostname:
                                     print "Unable to find running instance %s." % instanceId
                                 else:
-				    print "Adding Hostname: %s" % hostname
+                                    print "Adding Hostname: %s" % hostname
                                     hostname = hostname[0].instances[0].private_dns_name.split('.')[:1][0]
-                                    s.addHost(hostname,cluster_user,spot_compute)
+                                    s.addHost(hostname, cluster_user, spot_compute)
 
                                     t.put_item(data={
                                         'instanceId': instanceId,
@@ -134,7 +134,7 @@ def pollQueue(scheduler, q, t):
                                         'spot_compute': spot_compute
                                     })
 
-				q.delete_message(result)
+                                q.delete_message(result)
                                 break
                             except boto.exception.BotoServerError as e:
                                 if e.error_code == 'RequestLimitExceeded':
