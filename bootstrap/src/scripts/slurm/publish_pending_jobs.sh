@@ -16,14 +16,25 @@
 ec2_region_url="http://169.254.169.254/latest/meta-data/placement/availability-zone"
 ec2_region=$(curl --retry 3 --retry-delay 0 --silent --fail ${ec2_region_url})
 
-spot_pending=$(/opt/slurm/bin/squeue -p spot -h -o '%t %D' | awk '$1 == "PD" { total = total + $2} END {print total}')
-ondemand_pending=$(/opt/slurm/bin/squeue -p ondemand -h -o '%t %D' | awk '$1 == "PD" { total = total + $2} END {print total}')
+spot_pending=$(/opt/slurm/bin/squeue -p spot -h -o '%t %C' | awk '$1 == "PD" { total = total + $2} END {print total}')
+small_pending=$(/opt/slurm/bin/squeue -p small -h -o '%t %C' | awk '$1 == "PD" { total = total + $2} END {print total}')
+medium_pending=$(/opt/slurm/bin/squeue -p medium -h -o '%t %C' | awk '$1 == "PD" { total = total + $2} END {print total}')
+large_pending=$(/opt/slurm/bin/squeue -p large -h -o '%t %C' | awk '$1 == "PD" { total = total + $2} END {print total}')
+
 if [ "${spot_pending}x" == "x" ]; then
 spot_pending=0
 fi
-if [ "${ondemand_pending}x" == "x" ]; then
-ondemand_pending=0
+if [ "${small_pending}x" == "x" ]; then
+small_pending=0
+fi
+if [ "${medium_pending}x" == "x" ]; then
+medium_pending=0
+fi
+if [ "${large_pending}x" == "x" ]; then
+large_pending=0
 fi
 
-aws --region ${ec2_region%?} cloudwatch put-metric-data --namespace cfncluster --metric-name spotpending --unit Count --value ${spot_pending} --dimensions Stack=${stack_name}
-aws --region ${ec2_region%?} cloudwatch put-metric-data --namespace cfncluster --metric-name pending --unit Count --value ${ondemand_pending} --dimensions Stack=${stack_name}
+aws --region ${ec2_region%?} cloudwatch put-metric-data --namespace cfncluster --metric-name spot_pending_cpu --unit Count --value ${spot_pending} --dimensions Stack=${stack_name}
+aws --region ${ec2_region%?} cloudwatch put-metric-data --namespace cfncluster --metric-name small_pending_cpu --unit Count --value ${small_pending} --dimensions Stack=${stack_name}
+aws --region ${ec2_region%?} cloudwatch put-metric-data --namespace cfncluster --metric-name medium_pending_cpu --unit Count --value ${medium_pending} --dimensions Stack=${stack_name}
+aws --region ${ec2_region%?} cloudwatch put-metric-data --namespace cfncluster --metric-name large_pending_cpu --unit Count --value ${large_pending} --dimensions Stack=${stack_name}

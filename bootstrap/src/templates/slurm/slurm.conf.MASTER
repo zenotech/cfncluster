@@ -63,7 +63,7 @@ SchedulerType=sched/backfill
 #SchedulerPort=
 #SchedulerRootFilter=
 SelectType=select/linear
-FastSchedule=1
+FastSchedule=0
 #PriorityType=priority/multifactor
 #PriorityDecayHalfLife=14-0
 #PriorityUsageResetPeriod=14-0
@@ -91,9 +91,15 @@ JobCompType=jobcomp/none
 #AccountingStoragePass=
 #AccountingStorageUser=
 #
-#ONDEMAND NODES
+#PARTITION:small
 NodeName=dummy Procs=1 State=UNKNOWN
-PartitionName=ondemand Nodes=dummy Default=YES MaxTime=INFINITE State=UP
-#SPOT NODES
+PartitionName=small Nodes=dummy Default=No MaxTime=INFINITE State=UP
+#PARTITION:medium
 NodeName=dummy2 Procs=1 State=UNKNOWN
-PartitionName=spot Nodes=dummy2 Default=No MaxTime=INFINITE State=UP
+PartitionName=medium Nodes=dummy2 Default=Yes MaxTime=INFINITE State=UP
+#PARTITION:large
+NodeName=dummy3 Procs=1 State=UNKNOWN
+PartitionName=large Nodes=dummy3 Default=No MaxTime=INFINITE State=UP
+#PARTITION:spot
+NodeName=dummy4 Procs=1 State=UNKNOWN
+PartitionName=spot Nodes=dummy4 Default=No MaxTime=INFINITE State=UP

@@ -23,7 +23,7 @@ def __runOpenlavaCommand(command):
         print ("Failed to run %s\n" % _command)
 
 
-def addHost(hostname, cluster_user, spot_compute):
+def addHost(hostname, cluster_user, partition):
     print('Adding %s', hostname)
 
     command = ['/opt/openlava-2.2/bin/lsaddhost', '-t', 'linux', '-m', 'IntelXeon', hostname]

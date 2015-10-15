@@ -13,7 +13,7 @@ __author__ = 'dougalb'
 
 hostfile_path = 'sqswatcher.hosts'
 
-def addHost(hostname,cluster_user, spot_compute):
+def addHost(hostname,cluster_user, partition):
     if hostname != None:
         print('Adding', hostname)
         hostfile = open(hostfile_path, 'a')

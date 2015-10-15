@@ -25,7 +25,7 @@ def __runSgeCommand(command):
     except sub.CalledProcessError:
         print ("Failed to run %s\n" % _command)
 
-def addHost(hostname, cluster_user, spot_compute):
+def addHost(hostname, cluster_user, partition):
     print('Adding %s', hostname)
 
     # Adding host as administrative host
