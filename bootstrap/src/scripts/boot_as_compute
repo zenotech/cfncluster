@@ -36,9 +36,14 @@ setup_ephemeral_drives
 RC=0
 echo "$cfn_master:/home /home nfs hard,intr,noatime,vers=3,_netdev 0 0" >> /etc/fstab || RC=1
 echo "$cfn_master:${cfn_shared_dir} ${cfn_shared_dir} nfs hard,intr,noatime,vers=3,_netdev 0 0" >> /etc/fstab || RC=1
+# Mount the exported /usr/local rather than the local one
+mv /usr/local /usr/local_old || RC=1
+mkdir /usr/local
+echo "$cfn_master:/usr/local /usr/local nfs hard,intr,noatime,vers=3,_netdev 0 0" >> /etc/fstab || RC=1
 mkdir -p ${cfn_shared_dir} || RC=1
 mount -v /home || RC=1
 mount -v ${cfn_shared_dir} || RC=1
+mount -v /usr/local || RC=1
 if [ $RC -ne 0 ]; then
   error_exit "Failed during during NFS mounts"
 fi

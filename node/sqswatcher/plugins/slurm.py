@@ -55,11 +55,15 @@ def __readNodeList():
     with open(_config) as slurm_config:
         for line in slurm_config:
             if line.startswith('#PARTITION'):
-                partition = line.split(':')[1].rstrip()                
+                partition = line.split(':')[1].rstrip()
+                dummy_node = slurm_config.next()
                 node_name = slurm_config.next()
                 items = node_name.split(' ')
                 node_line = items[0].split('=')
-                nodes[partition] = node_line[1].split(',')
+                if len(node_line[1]) > 0:
+                    nodes[partition] = node_line[1].split(',')
+                else:
+                    nodes[partition] = []
     return nodes
 
 
@@ -72,14 +76,19 @@ def __writeNodeList(node_list):
                 if line.startswith('#PARTITION'):
                     partition = line.split(':')[1].rstrip()
                     new_file.write(line)
+                    dummy_node = slurm_config.next()
+                    new_file.write(dummy_node)
                     node_names = slurm_config.next()
                     partitions = slurm_config.next()
                     items = node_names.split(' ')
                     node_line = items[0].split('=')
-                    new_file.write(node_line[0] + '=' + ','.join(node_list[partition]) + " " + ' '.join(items[1:]))
+                    if len(node_list[partition]) > 0:
+                        new_file.write('NodeName=' + ','.join(node_list[partition]) + " " + ' '.join(items[1:]))
+                    else:
+                        new_file.write("#NodeName= Procs=1 State=UNKNOWN\n")
                     items = partitions.split(' ')
                     node_line = items[1].split('=')
-                    new_file.write(items[0] + " " + node_line[0] + '=' + ','.join(node_list[partition]) + " " + ' '.join(items[2:]))
+                    new_file.write(items[0] + " " + node_line[0] + '=dummy-' + partition + ',' + ','.join(node_list[partition]) + " " + ' '.join(items[2:]))
                 else:
                     new_file.write(line)
     os.close(fh)
@@ -109,6 +118,9 @@ def addHost(hostname, cluster_user, partition):
     # Restart slurmctl on host
     __restartSlurm(hostname, cluster_user)
 
+    # Reconfifure Slurm
+    command = ['/opt/slurm/bin/scontrol', 'reconfigure']
+    __runCommand(command)
 
 def removeHost(hostname, cluster_user):
     print('Removing %s', hostname)
